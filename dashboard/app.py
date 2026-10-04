@@ -354,16 +354,61 @@ def main() -> None:
         st.session_state["cargo_ativo"] = cargo_cod
         st.rerun()
 
-    # Conteúdo do cargo selecionado
-    st.subheader(f"{POLO_ICONS.get(cargo_cod,'')} {CARGOS[cargo_cod]['nome']}")
-
-    # Progresso da apuração
-    render_progress_bar(cargo_cod)
-    st.divider()
-
-    # Dados
+    # Dados do cargo selecionado
     df = carregar_resultado(cargo_cod)
 
+    # Identifica candidato em destaque para exibir no Card (baseado no filtro de busca ou 1º colocado)
+    cand_destaque = None
+    termo_busca = st.session_state.get(f"nome_{cargo_cod}", "").strip().upper()
+    num_busca = st.session_state.get(f"num_{cargo_cod}", "").strip()
+
+    if not df.empty:
+        df_match = df.copy()
+        if termo_busca:
+            mask = df_match["nome_urna"].str.upper().str.contains(termo_busca, na=False)
+            if "nome" in df_match.columns:
+                mask = mask | df_match["nome"].str.upper().str.contains(termo_busca, na=False)
+            df_match = df_match[mask]
+        if num_busca:
+            df_match = df_match[df_match["numero"].astype(str).str.startswith(num_busca)]
+
+        if not df_match.empty:
+            cand_destaque = df_match.iloc[0].to_dict()
+        else:
+            cand_destaque = df.iloc[0].to_dict()
+
+    # --- CABEÇALHO COM CARD DE FOTO À DIREITA ---
+    header_col_esq, header_col_dir = st.columns([1.5, 1])
+
+    with header_col_esq:
+        st.subheader(f"{POLO_ICONS.get(cargo_cod,'')} {CARGOS[cargo_cod]['nome']}")
+        render_progress_bar(cargo_cod)
+
+    with header_col_dir:
+        if cand_destaque:
+            with st.container(border=True):
+                c_card_foto, c_card_info = st.columns([1, 2])
+                with c_card_foto:
+                    foto_path = cand_destaque.get("foto_url")
+                    if foto_path and Path(foto_path).exists():
+                        st.image(str(foto_path), use_container_width=True)
+                    else:
+                        st.markdown("<div style='font-size:3.5rem; text-align:center;'>👤</div>", unsafe_allow_html=True)
+
+                with c_card_info:
+                    st.markdown(f"### {cand_destaque.get('nome_urna', '—')}")
+                    st.markdown(f"**Partido:** {cand_destaque.get('sigla_partido', '—')} · **Nº** `{cand_destaque.get('numero', '—')}`")
+                    votos_str = formatar_numero(cand_destaque.get('votos_nom', 0))
+                    pct_str = f"{cand_destaque.get('pct_votos_validos', 0):.2f}%"
+                    sit_str = cand_destaque.get('situacao_display', '⏳ Aguardando')
+                    if cand_destaque.get('votos_nom', 0) > 0:
+                        st.markdown(f"**Votos:** {votos_str} ({pct_str}) · {sit_str}")
+                    else:
+                        st.markdown(f"**Status:** {sit_str}")
+
+    st.divider()
+
+    # Tabelas e Gráficos
     col_table, col_chart = st.columns([1, 1])
 
     with col_table:

@@ -40,6 +40,7 @@ def enriquecer_resultado(cargo_cod: str) -> List[Dict[str, Any]]:
                 "nome": c["nome"],
                 "sigla_partido": c["sigla_partido"],
                 "partido": c["partido"],
+                "foto_url": c.get("foto_url", ""),
                 "votos_nom": 0,
                 "percentual": 0.0,
                 "pct_votos_validos": 0.0,

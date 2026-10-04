@@ -60,7 +60,7 @@ COD_TSE_PARA_CARGO = {v["cod_tse"]: k for k, v in CARGOS.items()}
 # ---------------------------------------------------------------------------
 POLL_INTERVAL_SEC  = 300     # 5 minutos
 PLEITO_START_HOUR  = 8       # 08:00 BRT
-PLEITO_END_HOUR    = 18      # 18:00 BRT (margem após encerramento às 17h)
+PLEITO_END_HOUR    = 23      # 23:00 BRT (cobre a apuração completa até o final da noite)
 
 # ---------------------------------------------------------------------------
 # HTTP — Rate limiting

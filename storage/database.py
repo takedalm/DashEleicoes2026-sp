@@ -135,10 +135,11 @@ def insert_resultados_bulk(resultados: List[Dict[str, Any]]) -> None:
 
 
 def get_ultimo_snapshot(cargo_cod: str) -> List[sqlite3.Row]:
-    """Retorna o snapshot mais recente para um cargo."""
+    """Retorna o snapshot mais recente para um cargo, incluindo foto_url do candidato."""
     sql = """
-        SELECT r.*
+        SELECT r.*, c.foto_url, c.nome
         FROM resultados r
+        LEFT JOIN candidatos c ON (r.candidato_id = c.id OR (r.numero = c.numero AND r.cargo_cod = c.cargo_cod))
         WHERE r.cargo_cod = ?
           AND r.snapshot_ts = (
               SELECT MAX(snapshot_ts) FROM resultados WHERE cargo_cod = ?
