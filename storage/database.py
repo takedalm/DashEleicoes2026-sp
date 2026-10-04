@@ -14,6 +14,13 @@ from storage.models import ALL_DDL
 logger = logging.getLogger(__name__)
 
 
+# Desativa conversor nativo antigo que falha com ISO 8601 (com 'T')
+def _safe_convert_timestamp(val: bytes) -> str:
+    return val.decode("utf-8")
+
+sqlite3.register_converter("timestamp", _safe_convert_timestamp)
+sqlite3.register_converter("TIMESTAMP", _safe_convert_timestamp)
+
 # ---------------------------------------------------------------------------
 # Conexão
 # ---------------------------------------------------------------------------
@@ -21,7 +28,7 @@ logger = logging.getLogger(__name__)
 @contextmanager
 def get_conn() -> Generator[sqlite3.Connection, None, None]:
     """Context manager para conexão SQLite com row_factory."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(str(DB_PATH), detect_types=0)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
