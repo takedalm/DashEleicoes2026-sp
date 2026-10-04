@@ -1,0 +1,93 @@
+2026-10-03 23:19:31,485 [INFO] __main__ — Inicializando banco de dados...
+2026-10-03 23:19:31,539 [INFO] storage.database — Banco de dados inicializado em G:\Documentos\000-DashEleicoes2026\data\eleicoes2026.db
+2026-10-03 23:19:31,540 [ERROR] __main__ — Erro ao executar comando 'setup': 'charmap' codec can't encode character '\u2705' in position 0: character maps to <undefined>
+Traceback (most recent call last):
+  File "G:\Documentos\000-DashEleicoes2026\main.py", line 171, in main
+    COMMANDS[cmd]()
+    ~~~~~~~~~~~~~^^
+  File "G:\Documentos\000-DashEleicoes2026\main.py", line 51, in cmd_setup
+    print("✅ Banco de dados inicializado.")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Lucas Takeda\AppData\Local\Python\pythoncore-3.13-64\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 0: character maps to <undefined>
+2026-10-03 23:20:19,832 [INFO] __main__ — Inicializando banco de dados...
+2026-10-03 23:20:19,845 [INFO] storage.database — Banco de dados inicializado em G:\Documentos\000-DashEleicoes2026\data\eleicoes2026.db
+2026-10-03 23:20:34,474 [ERROR] __main__ — Erro ao executar comando 'check': No module named 'aiohttp'
+Traceback (most recent call last):
+  File "G:\Documentos\000-DashEleicoes2026\main.py", line 177, in main
+    COMMANDS[cmd]()
+    ~~~~~~~~~~~~~^^
+  File "G:\Documentos\000-DashEleicoes2026\main.py", line 70, in cmd_check
+    from collector.tse_api import descobrir_codigo_pleito, coletar_resultados
+  File "G:\Documentos\000-DashEleicoes2026\collector\tse_api.py", line 12, in <module>
+    import aiohttp
+ModuleNotFoundError: No module named 'aiohttp'
+2026-10-03 23:25:44,753 [INFO] collector.tse_api — Descobrindo código do pleito via: https://resultados.tse.jus.br/ele2026/config.json
+2026-10-03 23:25:45,807 [ERROR] collector.tse_api — Erro ao descobrir código do pleito: 503 Server Error: Service Unavailable for url: https://resultados.tse.jus.br/ele2026/config.json
+2026-10-03 23:25:45,818 [INFO] storage.database — Banco de dados inicializado em G:\Documentos\000-DashEleicoes2026\data\eleicoes2026.db
+2026-10-03 23:25:45,989 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c7-e003220-r.json
+2026-10-03 23:25:46,013 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c6-e003220-r.json
+2026-10-03 23:25:46,024 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c5-e003220-r.json
+2026-10-03 23:25:46,026 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c1-e003220-r.json
+2026-10-03 23:25:46,037 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c3-e003220-r.json
+2026-10-03 23:25:48,045 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c6-e003220-r.json
+2026-10-03 23:25:48,070 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c5-e003220-r.json
+2026-10-03 23:25:48,080 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c3-e003220-r.json
+2026-10-03 23:25:48,093 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c1-e003220-r.json
+2026-10-03 23:25:48,097 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c7-e003220-r.json
+2026-10-03 23:25:52,140 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c6-e003220-r.json
+2026-10-03 23:25:52,141 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c3-e003220-r.json
+2026-10-03 23:25:52,144 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c7-e003220-r.json
+2026-10-03 23:25:52,156 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c1-e003220-r.json
+2026-10-03 23:25:52,178 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c5-e003220-r.json
+2026-10-03 23:26:00,180 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c6-e003220-r.json
+2026-10-03 23:26:00,181 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c3-e003220-r.json
+2026-10-03 23:26:00,187 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c7-e003220-r.json
+2026-10-03 23:26:00,196 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c1-e003220-r.json
+2026-10-03 23:26:00,221 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c5-e003220-r.json
+2026-10-03 23:26:16,308 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c5-e003220-r.json
+2026-10-03 23:26:16,314 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c6-e003220-r.json
+2026-10-03 23:26:16,316 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c1-e003220-r.json
+2026-10-03 23:26:16,317 [WARNING] collector.tse_api — Sem dados para cargo PR no snapshot 2026-10-04T02:25:45.823530+00:00
+2026-10-03 23:26:16,319 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c3-e003220-r.json
+2026-10-03 23:26:16,320 [WARNING] collector.tse_api — Sem dados para cargo GOV no snapshot 2026-10-04T02:25:45.823530+00:00
+2026-10-03 23:26:16,320 [WARNING] collector.tse_api — Sem dados para cargo SEN no snapshot 2026-10-04T02:25:45.823530+00:00
+2026-10-03 23:26:16,320 [WARNING] collector.tse_api — Sem dados para cargo DEP_FED no snapshot 2026-10-04T02:25:45.823530+00:00
+2026-10-03 23:26:16,374 [WARNING] collector.tse_api — Rate limit/serviço indisponível (HTTP 503) — URL: https://resultados.tse.jus.br/ele2026/003220/dados-simplificados/sp/71072/71072-c7-e003220-r.json
+2026-10-03 23:26:16,375 [WARNING] collector.tse_api — Sem dados para cargo DEP_EST no snapshot 2026-10-04T02:25:45.823530+00:00
+2026-10-04 04:57:34,821 [INFO] storage.database — Banco de dados inicializado em G:\Documentos\000-DashEleicoes2026\data\eleicoes2026.db
+2026-10-04 04:57:34,852 [INFO] collector.candidatos — Coletando candidatos | Cargo: PR | URL: https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/1/candidatos
+2026-10-04 04:57:35,958 [WARNING] collector.candidatos — HTTP 403 ao acessar https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/1/candidatos (tentativa 1/5)
+2026-10-04 04:57:38,897 [WARNING] collector.candidatos — HTTP 403 ao acessar https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/1/candidatos (tentativa 2/5)
+2026-10-04 04:57:43,885 [WARNING] collector.candidatos — HTTP 403 ao acessar https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/1/candidatos (tentativa 3/5)
+2026-10-04 04:59:31,984 [INFO] storage.database — Banco de dados inicializado em G:\Documentos\000-DashEleicoes2026\data\eleicoes2026.db
+2026-10-04 04:59:31,985 [INFO] collector.candidatos — Coletando candidatos | Cargo: PR | URL: https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/1/candidatos
+2026-10-04 04:59:32,975 [WARNING] collector.candidatos — HTTP 403 (WAF/Akamai ativo no TSE) ao acessar https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/1/candidatos
+2026-10-04 04:59:32,978 [WARNING] collector.candidatos — Nenhum dado retornado para cargo PR
+2026-10-04 04:59:32,978 [INFO] collector.candidatos — Coletando candidatos | Cargo: GOV | URL: https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/3/candidatos
+2026-10-04 04:59:33,950 [WARNING] collector.candidatos — HTTP 403 (WAF/Akamai ativo no TSE) ao acessar https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/3/candidatos
+2026-10-04 04:59:33,954 [WARNING] collector.candidatos — Nenhum dado retornado para cargo GOV
+2026-10-04 04:59:33,955 [INFO] collector.candidatos — Coletando candidatos | Cargo: SEN | URL: https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/5/candidatos
+2026-10-04 04:59:34,901 [WARNING] collector.candidatos — HTTP 403 (WAF/Akamai ativo no TSE) ao acessar https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/5/candidatos
+2026-10-04 04:59:34,904 [WARNING] collector.candidatos — Nenhum dado retornado para cargo SEN
+2026-10-04 04:59:34,904 [INFO] collector.candidatos — Coletando candidatos | Cargo: DEP_FED | URL: https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/6/candidatos
+2026-10-04 04:59:35,900 [WARNING] collector.candidatos — HTTP 403 (WAF/Akamai ativo no TSE) ao acessar https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/6/candidatos
+2026-10-04 04:59:35,902 [WARNING] collector.candidatos — Nenhum dado retornado para cargo DEP_FED
+2026-10-04 04:59:35,902 [INFO] collector.candidatos — Coletando candidatos | Cargo: DEP_EST | URL: https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/7/candidatos
+2026-10-04 04:59:36,829 [WARNING] collector.candidatos — HTTP 403 (WAF/Akamai ativo no TSE) ao acessar https://divulgacandcontas.tse.jus.br/divulga/rest/candidatura/listar/2026/SP/3220/7/candidatos
+2026-10-04 04:59:36,831 [WARNING] collector.candidatos — Nenhum dado retornado para cargo DEP_EST
+2026-10-04 04:59:36,832 [INFO] collector.candidatos — Total de candidatos coletados e persistidos: 0
+2026-10-04 05:33:30,401 [INFO] storage.database — Banco de dados inicializado em G:\Documentos\000-DashEleicoes2026\data\eleicoes2026.db
+2026-10-04 05:33:30,430 [INFO] collector.candidatos — Iniciando importação de candidatos via Dados Abertos...
+2026-10-04 05:33:30,431 [INFO] collector.candidatos — Baixando arquivo oficial de candidatos: https://cdn.tse.jus.br/estatistica/sead/odsele/consulta_cand/consulta_cand_2026.zip (tentativa 1/5)
+2026-10-04 05:33:31,551 [INFO] collector.candidatos — Download concluído com sucesso!
+2026-10-04 05:33:32,248 [INFO] collector.candidatos — Encontrados 2 arquivos CSV para processar.
+2026-10-04 05:33:32,249 [INFO] collector.candidatos — Processando arquivo: consulta_cand_2026_BR.csv
+2026-10-04 05:33:32,289 [INFO] storage.database — Upsert de 14 candidatos concluído.
+2026-10-04 05:33:32,289 [INFO] collector.candidatos — Importados 14 candidatos do arquivo consulta_cand_2026_BR.csv
+2026-10-04 05:33:32,289 [INFO] collector.candidatos — Processando arquivo: consulta_cand_2026_SP.csv
+2026-10-04 05:33:32,429 [INFO] storage.database — Upsert de 2586 candidatos concluído.
+2026-10-04 05:33:32,429 [INFO] collector.candidatos — Importados 2586 candidatos do arquivo consulta_cand_2026_SP.csv
+2026-10-04 05:33:32,429 [INFO] collector.candidatos — Total final de candidatos importados para o banco: 2600
