@@ -304,6 +304,10 @@ def main() -> None:
     )
     st.divider()
 
+    # Inicializa estado do cargo ativo se não existir
+    if "cargo_ativo" not in st.session_state:
+        st.session_state["cargo_ativo"] = "PR"
+
     # Sidebar
     with st.sidebar:
         st.header("⚙️ Controles")
@@ -311,45 +315,68 @@ def main() -> None:
         refresh_interval = st.slider("Intervalo (segundos)", 30, 600, 60, step=30)
 
         st.divider()
-        st.markdown("### 📋 Cargos monitorados")
+        st.markdown("### 📋 Navegação Rápida")
+        st.caption("Clique no cargo para ir direto à visão:")
+
         for k, v in CARGOS.items():
-            st.markdown(f"- {POLO_ICONS.get(k,'')} **{v['nome']}**")
+            label = f"{POLO_ICONS.get(k,'')} {v['nome']}"
+            is_active = (st.session_state["cargo_ativo"] == k)
+            btn_type = "primary" if is_active else "secondary"
+            if st.button(label, key=f"nav_btn_{k}", use_container_width=True, type=btn_type):
+                st.session_state["cargo_ativo"] = k
+                st.rerun()
 
         st.divider()
-        if st.button("🔄 Atualizar agora"):
+        if st.button("🔄 Atualizar agora", use_container_width=True):
             st.cache_data.clear()
             st.rerun()
 
         st.markdown("---")
         st.caption("Fonte: TSE · Dados Oficiais · Eleições 2026")
 
-    # Abas por cargo
-    tabs = st.tabs([CARGO_LABELS[k] for k in CARGOS])
+    # Lista de chaves dos cargos
+    lista_cargos = list(CARGOS.keys())
+    indice_ativo = lista_cargos.index(st.session_state["cargo_ativo"]) if st.session_state["cargo_ativo"] in lista_cargos else 0
 
-    for tab, cargo_cod in zip(tabs, CARGOS.keys()):
-        with tab:
-            st.subheader(f"{POLO_ICONS.get(cargo_cod,'')} {CARGOS[cargo_cod]['nome']}")
+    # Seletor superior sincronizado com o menu lateral
+    cargo_cod = st.radio(
+        "Navegue entre os cargos:",
+        options=lista_cargos,
+        format_func=lambda k: CARGO_LABELS[k],
+        index=indice_ativo,
+        horizontal=True,
+        label_visibility="collapsed",
+        key="radio_cargo_selector",
+    )
 
-            # Progresso da apuração
-            render_progress_bar(cargo_cod)
-            st.divider()
+    # Mantém o session_state sempre atualizado com a escolha do radio
+    if cargo_cod != st.session_state["cargo_ativo"]:
+        st.session_state["cargo_ativo"] = cargo_cod
+        st.rerun()
 
-            # Dados
-            df = carregar_resultado(cargo_cod)
+    # Conteúdo do cargo selecionado
+    st.subheader(f"{POLO_ICONS.get(cargo_cod,'')} {CARGOS[cargo_cod]['nome']}")
 
-            col_table, col_chart = st.columns([1, 1])
+    # Progresso da apuração
+    render_progress_bar(cargo_cod)
+    st.divider()
 
-            with col_table:
-                st.markdown("#### 📋 Resultados por Candidato")
-                render_tabela_resultados(df, cargo_cod)
+    # Dados
+    df = carregar_resultado(cargo_cod)
 
-            with col_chart:
-                st.markdown("#### 📊 Votos por Candidato")
-                render_grafico_barras(df, cargo_cod)
+    col_table, col_chart = st.columns([1, 1])
 
-            st.divider()
-            st.markdown("#### 🔍 Status da Auditoria (BU vs. Totalização)")
-            render_status_auditoria(cargo_cod)
+    with col_table:
+        st.markdown("#### 📋 Resultados por Candidato")
+        render_tabela_resultados(df, cargo_cod)
+
+    with col_chart:
+        st.markdown("#### 📊 Votos por Candidato")
+        render_grafico_barras(df, cargo_cod)
+
+    st.divider()
+    st.markdown("#### 🔍 Status da Auditoria (BU vs. Totalização)")
+    render_status_auditoria(cargo_cod)
 
     # Auto-refresh
     if auto_refresh:
