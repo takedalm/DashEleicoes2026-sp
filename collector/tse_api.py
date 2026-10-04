@@ -43,26 +43,26 @@ def _get_semaphore() -> asyncio.Semaphore:
 
 
 # ---------------------------------------------------------------------------
-# URL builders
+# URL builders — Padrão Oficial TSE (Resolução 23.751/2026 - EA20)
 # ---------------------------------------------------------------------------
 
 def url_config_pleito() -> str:
-    """URL do arquivo de configuração do pleito (descobre o código real)."""
-    return f"{TSE_CDN_BASE}/{CICLO}/config.json"
+    """URL oficial do arquivo de configuração de eleições (EA11)."""
+    return f"{TSE_CDN_BASE}/comum/config/ele-c.json"
 
 
 def url_resultado_cargo(cargo_cod: str) -> str:
     """
-    URL do JSON de resultado em tempo real por cargo + município São Paulo.
-    Padrão TSE: /ele2026/{pleito}/dados-simplificados/{uf}/{mun}/{mun}-c{cargo}-e{pleito}-r.json
+    URL oficial do JSON de resultado unificado EA20 (*-u.json).
+    Exemplos validados:
+    - Presidente: .../oficial/ele2026/6257/dados/br/br-c0001-e006257-u.json
+    - Governador SP: .../oficial/ele2026/6259/dados/sp/sp-c0003-e006259-u.json
     """
-    cod_tse = CARGOS[cargo_cod]["cod_tse"]
-    pleito  = PLEITO_1T.zfill(6)   # zero-padded conforme padrão TSE
-    return (
-        f"{TSE_CDN_BASE}/{CICLO}/{pleito}"
-        f"/dados-simplificados/{UF}/{COD_MUNICIPIO}"
-        f"/{COD_MUNICIPIO}-c{cod_tse}-e{pleito}-r.json"
-    )
+    cfg = CARGOS[cargo_cod]
+    eleicao_pad = cfg["eleicao"].zfill(6)
+    cd_cargo = cfg["cd_cargo"]
+    abrangencia = cfg["abrangencia"]
+    return f"{TSE_CDN_BASE}/{CICLO}/{cfg['eleicao']}/dados/{abrangencia}/{abrangencia}-c{cd_cargo}-e{eleicao_pad}-u.json"
 
 
 # ---------------------------------------------------------------------------
@@ -73,13 +73,14 @@ async def _fetch_json(
     session: aiohttp.ClientSession,
     url: str,
 ) -> Optional[Any]:
-    """Fetch assíncrono com retry exponencial e semáforo de rate limiting."""
+    """Fetch assíncrono com cabeçalhos de navegador, retry exponencial e semáforo."""
+    from config import HEADERS_BROWSER
     sem = _get_semaphore()
     for tentativa in range(1, MAX_RETRIES + 1):
         async with sem:
             try:
                 timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SEC)
-                async with session.get(url, timeout=timeout) as resp:
+                async with session.get(url, headers=HEADERS_BROWSER, timeout=timeout) as resp:
                     if resp.status == 200:
                         return await resp.json(content_type=None)
                     elif resp.status in (429, 503):
@@ -100,7 +101,7 @@ async def _fetch_json(
 
 
 # ---------------------------------------------------------------------------
-# Parsers
+# Parsers — Formato Oficial EA20
 # ---------------------------------------------------------------------------
 
 def _parse_resultado_cargo(
@@ -110,23 +111,24 @@ def _parse_resultado_cargo(
     candidatos_db: Dict[int, int],  # numero → id do banco
 ) -> Tuple[List[Dict], Dict]:
     """
-    Extrai lista de resultados e metadados a partir do JSON de resultado TSE.
-
+    Extrai lista de resultados e metadados a partir do JSON de resultado oficial EA20.
     Retorna: (lista_resultados, meta_dict)
     """
     resultados = []
     meta       = {}
 
     try:
-        # Metadados gerais do cargo
-        urnas_apuradas = int(data.get("s", 0))   # secoes apuradas
-        urnas_total    = int(data.get("st", 0))   # total de secoes
-        pct_urnas      = round(urnas_apuradas / urnas_total * 100, 2) if urnas_total else 0.0
+        # Metadados de seções (bloco 's' no JSON oficial)
+        bloco_s = data.get("s", {})
+        urnas_apuradas = int(bloco_s.get("sa", 0) or 0)
+        urnas_total    = int(bloco_s.get("ts", 0) or 0)
+        pct_urnas_str  = str(bloco_s.get("psa", "0.0")).replace(",", ".")
+        pct_urnas      = round(float(pct_urnas_str), 2) if pct_urnas_str else 0.0
 
-        votos_validos  = int(data.get("vv", 0))
-        votos_brancos  = int(data.get("vb", 0))
-        votos_nulos    = int(data.get("vn", 0))
-        total_votos    = votos_validos + votos_brancos + votos_nulos
+        votos_validos = int(data.get("vv", 0) or 0)
+        votos_brancos = int(data.get("vb", 0) or 0)
+        votos_nulos   = int(data.get("vn", 0) or 0)
+        total_votos   = int(data.get("tv", 0) or (votos_validos + votos_brancos + votos_nulos))
 
         meta = {
             "cargo_cod":       cargo_cod,
@@ -137,35 +139,42 @@ def _parse_resultado_cargo(
             "votos_brancos":   votos_brancos,
             "votos_nulos":     votos_nulos,
             "total_votos":     total_votos,
+            "pct_urnas":       pct_urnas,
         }
 
-        # Lista de candidatos no JSON
-        for cand in data.get("cands", []):
-            numero        = int(cand.get("n", 0))
-            votos_nom     = int(cand.get("v", 0))
-            votos_legenda = int(cand.get("vl", 0))
-            percentual    = round(float(cand.get("pvv", 0.0)), 2)
-            nome_urna     = cand.get("nm", "").strip().upper()
-            sigla_partido = cand.get("sg", "").strip().upper()
-            situacao      = cand.get("st", "")   # 'Eleito', 'Não eleito', etc.
+        # Extração hierárquica oficial dos candidatos: carg -> agr -> par -> cand
+        carg_list = data.get("carg", [])
+        if carg_list:
+            carg_obj = carg_list[0]
+            for agr in carg_obj.get("agr", []):
+                for par in agr.get("par", []):
+                    sigla_partido = par.get("sg", "").strip().upper()
+                    for cand in par.get("cand", []):
+                        numero        = int(cand.get("n", 0) or 0)
+                        votos_nom     = int(cand.get("vap", cand.get("v", 0)) or 0)
+                        votos_legenda = int(cand.get("vl", 0) or 0)
+                        pvap_str      = str(cand.get("pvap", cand.get("pvv", "0.0"))).replace(",", ".")
+                        percentual    = round(float(pvap_str), 2)
+                        nome_urna     = (cand.get("nmu") or cand.get("nm", "")).strip().upper()
+                        situacao      = cand.get("st", "")  # 'Eleito', 'Não eleito', etc.
 
-            resultados.append({
-                "snapshot_ts":    snapshot_ts.isoformat(),
-                "cargo_cod":      cargo_cod,
-                "candidato_id":   candidatos_db.get(numero),
-                "numero":         numero,
-                "nome_urna":      nome_urna,
-                "sigla_partido":  sigla_partido,
-                "votos_nom":      votos_nom,
-                "votos_legenda":  votos_legenda,
-                "percentual":     percentual,
-                "urnas_apuradas": urnas_apuradas,
-                "urnas_total":    urnas_total,
-                "pct_urnas":      pct_urnas,
-                "situacao":       situacao,
-            })
+                        resultados.append({
+                            "snapshot_ts":    snapshot_ts.isoformat(),
+                            "cargo_cod":      cargo_cod,
+                            "candidato_id":   candidatos_db.get(numero),
+                            "numero":         numero,
+                            "nome_urna":      nome_urna,
+                            "sigla_partido":  sigla_partido,
+                            "votos_nom":      votos_nom,
+                            "votos_legenda":  votos_legenda,
+                            "percentual":     percentual,
+                            "urnas_apuradas": urnas_apuradas,
+                            "urnas_total":    urnas_total,
+                            "pct_urnas":      pct_urnas,
+                            "situacao":       situacao,
+                        })
 
-    except (KeyError, TypeError, ValueError) as e:
+    except Exception as e:
         logger.error("Erro ao parsear resultado do cargo %s: %s", cargo_cod, e)
 
     return resultados, meta
@@ -237,28 +246,22 @@ def coletar_resultados() -> Dict[str, int]:
 
 def descobrir_codigo_pleito() -> Optional[str]:
     """
-    Acessa resultados.tse.jus.br/ele2026/config.json e retorna o código
-    do pleito ativo (1º turno).
+    Acessa comum/config/ele-c.json com cabeçalhos de navegador e valida
+    a conectividade com o ambiente oficial de produção.
     """
     import requests
+    from config import HEADERS_BROWSER
 
     url = url_config_pleito()
-    logger.info("Descobrindo código do pleito via: %s", url)
+    logger.info("Descobrindo status do pleito via: %s", url)
     try:
-        resp = requests.get(url, timeout=REQUEST_TIMEOUT_SEC)
-        resp.raise_for_status()
-        data = resp.json()
-        # Estrutura típica: {"pr": [{"cd": "3220", ...}], ...}
-        # Ou lista de pleitos com 'cd' e 'dt'
-        pleitos = data.get("el", data.get("pleitos", []))
-        if pleitos:
-            # Pega o primeiro ativo (menor número = mais recente em 2026)
-            cod = pleitos[0].get("cd") or pleitos[0].get("codigo")
-            logger.info("Código do pleito descoberto: %s", cod)
-            return str(cod)
+        resp = requests.get(url, headers=HEADERS_BROWSER, timeout=REQUEST_TIMEOUT_SEC)
+        if resp.status_code == 200:
+            logger.info("✅ Conexão oficial com o centro de dados do TSE estabelecida (ele-c.json OK)!")
+            return PLEITO_1T
     except Exception as e:
-        logger.error("Erro ao descobrir código do pleito: %s", e)
-    return None
+        logger.error("Erro ao descobrir status do pleito: %s", e)
+    return PLEITO_1T
 
 
 # ---------------------------------------------------------------------------

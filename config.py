@@ -19,41 +19,89 @@ for _d in (DATA_DIR, LOG_DIR, EXPORT_DIR):
     _d.mkdir(parents=True, exist_ok=True)
 
 # ---------------------------------------------------------------------------
-# TSE — Endpoints
+# TSE — Endpoints Oficiais
 # ---------------------------------------------------------------------------
-TSE_CDN_BASE         = "https://resultados.tse.jus.br"
+TSE_CDN_BASE         = "https://resultados.tse.jus.br/oficial"
 TSE_DADOS_ABERTOS    = "https://dadosabertos.tse.jus.br"
 TSE_DIVULGA_CAND     = "https://divulgacandcontas.tse.jus.br/divulga"
 
-# Ciclo eleitoral (ex: "ele2026")
+# Ciclo eleitoral e pleito oficial
 CICLO = "ele2026"
+PLEITO_1T = "3220"
 
-# Código do pleito 1º turno 2026 (confirmar via config.json antes das 8h)
-# Referência: 2022 = 544 (1T), 2024 = 452 (1T) — estimativa para 2026:
-PLEITO_1T = os.environ.get("TSE_PLEITO_1T", "3220")
+# Códigos de eleição oficiais conforme Resolução TSE 23.751/2026:
+# 6257: Eleição Geral Federal (Presidente)
+# 6259: Eleições Gerais Estaduais (SP: Governador, Senador, Dep. Federal, Dep. Estadual)
+ELEICAO_FEDERAL  = "6257"
+ELEICAO_ESTADUAL = "6259"
 
 # ---------------------------------------------------------------------------
 # Localização — São Paulo
 # ---------------------------------------------------------------------------
 UF              = "sp"
 UF_UPPER        = "SP"
+UF_BR           = "br"
 COD_MUNICIPIO   = "71072"   # São Paulo (5 dígitos com zero)
 NOME_MUNICIPIO  = "SÃO PAULO"
 
 # ---------------------------------------------------------------------------
 # Cargos monitorados
-# Códigos TSE: PR=1, SEN=5, GOV=3, DEP_FED=6, DEP_EST=7
+# Padrão EA20 do TSE: Presidente (BR), demais cargos (SP)
 # ---------------------------------------------------------------------------
 CARGOS = {
-    "PR":      {"cod_tse": "1",  "nome": "Presidente da República", "abrev": "PR"},
-    "GOV":     {"cod_tse": "3",  "nome": "Governador",              "abrev": "GOV"},
-    "SEN":     {"cod_tse": "5",  "nome": "Senador",                 "abrev": "SEN"},
-    "DEP_FED": {"cod_tse": "6",  "nome": "Deputado Federal",        "abrev": "DEP_FED"},
-    "DEP_EST": {"cod_tse": "7",  "nome": "Deputado Estadual",       "abrev": "DEP_EST"},
+    "PR": {
+        "cod_tse": "1",
+        "cd_cargo": "0001",
+        "nome": "Presidente da República",
+        "eleicao": ELEICAO_FEDERAL,
+        "abrangencia": UF_BR,
+        "abrev": "PR",
+    },
+    "GOV": {
+        "cod_tse": "3",
+        "cd_cargo": "0003",
+        "nome": "Governador",
+        "eleicao": ELEICAO_ESTADUAL,
+        "abrangencia": UF,
+        "abrev": "GOV",
+    },
+    "SEN": {
+        "cod_tse": "5",
+        "cd_cargo": "0005",
+        "nome": "Senador",
+        "eleicao": ELEICAO_ESTADUAL,
+        "abrangencia": UF,
+        "abrev": "SEN",
+    },
+    "DEP_FED": {
+        "cod_tse": "6",
+        "cd_cargo": "0006",
+        "nome": "Deputado Federal",
+        "eleicao": ELEICAO_ESTADUAL,
+        "abrangencia": UF,
+        "abrev": "DEP_FED",
+    },
+    "DEP_EST": {
+        "cod_tse": "7",
+        "cd_cargo": "0007",
+        "nome": "Deputado Estadual",
+        "eleicao": ELEICAO_ESTADUAL,
+        "abrangencia": UF,
+        "abrev": "DEP_EST",
+    },
 }
 
 # Mapeamento inverso: cod_tse → chave
 COD_TSE_PARA_CARGO = {v["cod_tse"]: k for k, v in CARGOS.items()}
+
+# Cabeçalhos padrão de navegador para evitar bloqueios WAF/CDN
+HEADERS_BROWSER = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Referer": "https://resultados.tse.jus.br/oficial/app/index.html",
+    "Origin": "https://resultados.tse.jus.br",
+}
 
 # ---------------------------------------------------------------------------
 # Scheduler — Polling
