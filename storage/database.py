@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 @contextmanager
 def get_conn() -> Generator[sqlite3.Connection, None, None]:
     """Context manager para conexão SQLite com row_factory."""
-    conn = sqlite3.connect(DB_PATH, detect_types=sqlite3.PARSE_DECLTYPES)
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
