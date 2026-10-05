@@ -17,9 +17,10 @@ import plotly.graph_objects as go
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import CARGOS, COD_MUNICIPIO, NOME_MUNICIPIO
-from storage.database import setup_database, get_ultima_meta
+from storage.database import setup_database, get_ultima_meta, get_ultimo_timestamp_snapshot
 from processor.eleitos import enriquecer_resultado
 from processor.auditoria import auditar_cargo
+from collector.tse_api import coletar_resultados
 
 logger = logging.getLogger(__name__)
 
@@ -308,11 +309,50 @@ def main() -> None:
     if "cargo_ativo" not in st.session_state:
         st.session_state["cargo_ativo"] = "PR"
 
+    # --- VERIFICAÇÃO AUTOMÁTICA DO SNAPSHOT (A CADA 20 MINUTOS) ---
+    ultimo_ts_str = get_ultimo_timestamp_snapshot()
+    precisa_coletar_auto = False
+
+    if not ultimo_ts_str:
+        precisa_coletar_auto = True
+    else:
+        try:
+            ultimo_dt = datetime.fromisoformat(ultimo_ts_str)
+            if ultimo_dt.tzinfo is None:
+                ultimo_dt = ultimo_dt.replace(tzinfo=timezone.utc)
+            minutos_passados = (datetime.now(tz=timezone.utc) - ultimo_dt).total_seconds() / 60
+            if minutos_passados >= 20:
+                precisa_coletar_auto = True
+        except Exception:
+            pass
+
+    if precisa_coletar_auto:
+        with st.spinner("📥 Mais de 20 min desde o último snapshot. Coletando novas parciais do TSE..."):
+            try:
+                coletar_resultados()
+                st.cache_data.clear()
+            except Exception as e:
+                logger.error("Erro na auto-coleta de 20 min: %s", e)
+
     # Sidebar
     with st.sidebar:
         st.header("⚙️ Controles")
+
+        # Botão de coleta direta no Streamlit
+        if st.button("📥 Coletar dados do TSE agora", use_container_width=True, type="primary"):
+            with st.spinner("Conectando ao centro de dados do TSE..."):
+                try:
+                    totais = coletar_resultados()
+                    total_cand = sum(totais.values())
+                    st.cache_data.clear()
+                    st.success(f"Coleta concluída! {total_cand} candidatos atualizados.")
+                    time.sleep(1)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao coletar: {e}")
+
         auto_refresh = st.toggle("🔄 Atualização automática", value=True)
-        refresh_interval = st.slider("Intervalo (segundos)", 30, 600, 60, step=30)
+        refresh_interval = st.slider("Intervalo de tela (segundos)", 30, 600, 60, step=30)
 
         st.divider()
         st.markdown("### 📋 Navegação Rápida")
@@ -327,7 +367,7 @@ def main() -> None:
                 st.rerun()
 
         st.divider()
-        if st.button("🔄 Atualizar agora", use_container_width=True):
+        if st.button("🔄 Atualizar tela agora", use_container_width=True):
             st.cache_data.clear()
             st.rerun()
 

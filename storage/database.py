@@ -228,3 +228,12 @@ def get_ultima_meta(cargo_cod: str) -> Optional[sqlite3.Row]:
     """
     with get_conn() as conn:
         return conn.execute(sql, (cargo_cod,)).fetchone()
+
+
+def get_ultimo_timestamp_snapshot() -> Optional[str]:
+    """Retorna a string ISO do último snapshot registrado no banco."""
+    sql = "SELECT MAX(snapshot_ts) FROM resultados"
+    with get_conn() as conn:
+        row = conn.execute(sql).fetchone()
+        return row[0] if row and row[0] else None
+
