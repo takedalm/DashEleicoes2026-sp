@@ -429,9 +429,20 @@ def main() -> None:
             with st.container(border=True):
                 c_card_foto, c_card_info = st.columns([1, 2])
                 with c_card_foto:
-                    foto_path = cand_destaque.get("foto_url")
-                    if foto_path and Path(foto_path).exists():
-                        st.image(str(foto_path), use_container_width=True)
+                    foto_nome = cand_destaque.get("foto_url")
+                    caminho_encontrado = None
+
+                    if foto_nome:
+                        # 1. Procura relativo à pasta data/fotos do projeto
+                        local_foto = Path(__file__).parent.parent / "data" / "fotos" / Path(foto_nome).name
+                        if local_foto.exists():
+                            caminho_encontrado = str(local_foto)
+                        # 2. Procura caminho direto se existir
+                        elif Path(foto_nome).exists():
+                            caminho_encontrado = str(Path(foto_nome))
+
+                    if caminho_encontrado:
+                        st.image(caminho_encontrado, use_container_width=True)
                     else:
                         st.markdown("<div style='font-size:3.5rem; text-align:center;'>👤</div>", unsafe_allow_html=True)
 
